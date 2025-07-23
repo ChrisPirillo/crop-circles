@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- SEO: Basic Metadata & Core Web Vitals -->
+    <meta charset="UTF-8">
+    <title>Crop Circles</title>
+    <meta name="description" content="An interactive 3D crop circle generator. Create, view, and export complex and beautiful crop circle patterns in a realistic field environment.">
+    <meta name="keywords" content="crop circles, 3d simulator, procedural generation, art, mystery, aliens, generative art, Chris Pirillo, interactive art">
+    <meta name="author" content="Chris Pirillo">
+    <link rel="canonical" href="https://pirillo.com/arcade/crop-circles.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO: Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pirillo.com/arcade/crop-circles.html">
+    <meta property="og:title" content="Crop Circles">
+    <meta property="og:description" content="An interactive 3D crop circle generator. Create, view, and export complex and beautiful crop circle patterns in a realistic field environment.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/crop-circles.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- SEO: Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://pirillo.com/arcade/crop-circles.html">
+    <meta name="twitter:title" content="Crop Circles">
+    <meta name="twitter:description" content="An interactive 3D crop circle generator. Create, view, and export complex and beautiful crop circle patterns in a realistic field environment.">
+    <meta name="twitter:image" content="https://pirillo.com/arcade/images/crop-circles.png">
+    <meta name="twitter:creator" content="@ChrisPirillo">
+
+    <!-- Performance: Resource Hints to accelerate loading of critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+
+    <!-- Performance: Preload critical assets. The font CSS is preloaded to avoid render-blocking. `display=swap` is used within the CSS to prevent FOIT/FOUT. -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Share+Tech+Mono&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Share+Tech+Mono&display=swap"></noscript>
+    
+    <!-- Performance: Preload the main 3D library script -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" as="script">
+    
+    <!-- Non-deferred as it's required for initial styling. Preconnect is used to speed up the connection. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- The `defer` attribute ensures this script is executed after the document is parsed but before DOMContentLoaded, without blocking the parser. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+
+    <!-- SEO: JSON-LD Structured Data for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Crop Circles",
+      "description": "An interactive 3D crop circle generator. Create, view, and export complex and beautiful crop circle patterns in a realistic field environment.",
+      "url": "https://pirillo.com/arcade/crop-circles.html",
+      "image": "https://pirillo.com/arcade/images/crop-circles.png",
+      "applicationCategory": "Game",
+      "operatingSystem": "All",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo",
+        "url": "https://pirillo.com/"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      }
+    }
+    </script>
+
+    <!-- Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+
+    <style>
+        /* Inlined critical CSS to ensure the initial layout is painted quickly without waiting for external stylesheets. */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-color: #1a2e1a; /* Fallback background */
+        }
+        canvas {
+            display: block;
+            cursor: default;
+        }
+        #status-text {
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-800">
+
+    <!-- SEO: Using <main> for the primary content of the page. -->
+    <main id="container" class="relative w-screen h-screen">
+        <!-- SEO: Using <footer> as this control bar is persistent at the bottom of the page. Added role="toolbar" for accessibility. -->
+        <footer class="absolute bottom-4 left-4 z-10 flex items-center space-x-4">
+            <div id="controls" role="toolbar" aria-label="Crop Circle Controls" class="bg-black/30 backdrop-blur-sm p-2 rounded-xl shadow-lg flex items-center space-x-2">
+                <!-- SEO & Accessibility: Added aria-label for screen readers -->
+                <button id="generateBtn" title="Generate New Pattern" aria-label="Generate New Pattern" class="p-3 text-white bg-black/20 hover:bg-black/40 rounded-lg transition-all disabled:opacity-50" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+                </button>
+                 <button id="clearPatternsBtn" title="Clear All" aria-label="Clear All Patterns" class="p-3 text-white bg-black/20 hover:bg-black/40 rounded-lg transition-all disabled:opacity-50" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+                <button id="exportBtn" title="Export as 4K Wallpaper" aria-label="Export as 4K Wallpaper" class="p-3 text-white bg-black/20 hover:bg-black/40 rounded-lg transition-all disabled:opacity-50" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+            </div>
+            <!-- Using role="status" for assertive screen reader announcements -->
+            <div id="status-text" role="status" class="text-white text-lg opacity-0 transition-opacity duration-500 pointer-events-none">Contacting Aliens</div>
+        </footer>
+    </main>
+
+    <script>
+        class RealisticCropCircleSimulator {
+            constructor() {
+                // DOM Elements
+                this.container = document.getElementById('container');
+                this.statusText = document.getElementById('status-text');
+                this.generateBtn = document.getElementById('generateBtn');
+                this.clearPatternsBtn = document.getElementById('clearPatternsBtn');
+                this.exportBtn = document.getElementById('exportBtn');
+
+                // Scene setup
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+                this.sunLight = null;
+
+                // Camera controls
+                this.cameraHeight = 3000;
+                this.minCameraHeight = 100; 
+                this.maxCameraHeight = 10000; 
+                this.cameraTarget = new THREE.Vector3(0, 0, 0);
+
+                // Field parameters
+                this.fieldSize = 4000;
+                this.renderFieldSize = this.fieldSize * 2; 
+                this.cropDensity = 4.0;
+                this.cropStalksData = [];
+                this.instancedMesh = null;
+                this.patterns = [];
+
+                // AESTHETIC FIX: Increased contrast between standing and flattened crops.
+                this.standingColor = new THREE.Color(0x446622); // Darker Green
+                // USER FEEDBACK: Made the flattened color a bit darker.
+                this.flattenedColor = new THREE.Color(0xa8b07a); // Darker Straw/Tan
+
+                // PERFORMANCE/QUALITY BALANCE: Grid resolution balanced for speed and quality.
+                this.patternGrid = null;
+                this.gridResolution = 400;
+                
+                // State management
+                this.isBusy = true;
+                this.animationCompletionCallback = null;
+                this.patternAnimation = {
+                    progress: 0,
+                    duration: 2500,
+                    startTime: 0,
+                    active: false,
+                    mode: 'drawing',
+                    finishing: false
+                };
+                this.updateJob = {
+                    stalkIndex: 0,
+                    batchSize: 90000,
+                };
+
+                this.init();
+            }
+
+            async init() {
+                this.isBusy = true;
+                this.setButtonsDisabled(true);
+                this.updateStatusText(true, true); 
+                
+                this.setupRenderer();
+                this.setupLighting();
+                this.setupGround();
+                this.setupCamera();
+                this.setupEventListeners();
+
+                this.animate(); 
+                
+                await this.growField();
+                await this.generateAndPrecomputePattern();
+                this.frameCameraOnPattern();
+                
+                this.updateStatusText(false); 
+                await this.runPatternAnimation('drawing');
+                
+                this.isBusy = false;
+                this.setButtonsDisabled(false);
+            }
+            
+            setButtonsDisabled(disabled) {
+                this.generateBtn.disabled = disabled;
+                this.clearPatternsBtn.disabled = disabled;
+                this.exportBtn.disabled = disabled;
+            }
+            
+            updateStatusText(visible, instant = false) {
+                if (visible) {
+                    if (instant) {
+                        this.statusText.classList.remove('transition-opacity');
+                    }
+                    this.statusText.classList.add('animate-pulse');
+                    this.statusText.classList.remove('opacity-0');
+                    if (instant) {
+                        void this.statusText.offsetWidth; 
+                        this.statusText.classList.add('transition-opacity');
+                    }
+                } else {
+                    this.statusText.classList.remove('animate-pulse');
+                    this.statusText.classList.add('opacity-0');
+                }
+            }
+
+            setupRenderer() {
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor(0x1a2e1a, 1);
+                // VISUAL FIX: Shadow map is disabled on the renderer.
+                this.renderer.shadowMap.enabled = false;
+                // VISUAL FIX: Set the correct color space to prevent shading inconsistencies.
+                this.renderer.outputEncoding = THREE.sRGBEncoding;
+                this.container.appendChild(this.renderer.domElement);
+            }
+
+            generateNoiseCanvas(size) {
+                const canvas = document.createElement('canvas');
+                canvas.width = canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.createImageData(size, size);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const shade = 30 + Math.random() * 40;
+                    data[i] = shade * 0.6;
+                    data[i + 1] = shade;
+                    data[i + 2] = shade * 0.4;
+                    data[i + 3] = 255;
+                }
+                ctx.putImageData(imageData, 0, 0);
+                return canvas;
+            }
+
+            setupGround() {
+                const groundTexture = new THREE.CanvasTexture(this.generateNoiseCanvas(128));
+                groundTexture.wrapS = THREE.RepeatWrapping;
+                groundTexture.wrapT = THREE.RepeatWrapping;
+                groundTexture.repeat.set(100, 100);
+                const groundMaterial = new THREE.MeshLambertMaterial({ map: groundTexture });
+                const ground = new THREE.Mesh(new THREE.PlaneGeometry(this.renderFieldSize, this.renderFieldSize), groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                // VISUAL FIX: Ground no longer receives shadows.
+                ground.receiveShadow = false;
+                this.scene.add(ground);
+            }
+
+            setupLighting() {
+                // VISUAL FIX: Increased ambient light intensity to compensate for the lack of a directional light.
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+                this.scene.add(ambientLight);
+
+                // VISUAL FIX: Directional light still adds some color and directionality, but it NO LONGER CASTS SHADOWS.
+                this.sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                this.sunLight.position.set(500, 1000, 500);
+                this.sunLight.castShadow = false;
+                
+                this.scene.add(this.sunLight);
+                this.scene.add(this.sunLight.target);
+            }
+
+            setupCamera() {
+                this.camera.position.set(0, this.cameraHeight, 0);
+                this.camera.lookAt(this.cameraTarget);
+            }
+
+            updateCameraPosition() {
+                this.cameraHeight = THREE.MathUtils.clamp(this.cameraHeight, this.minCameraHeight, this.maxCameraHeight);
+                this.camera.position.set(this.cameraTarget.x, this.cameraHeight, this.cameraTarget.z);
+                this.camera.lookAt(this.cameraTarget);
+
+                if (this.sunLight) {
+                    this.sunLight.target.position.copy(this.cameraTarget);
+                    this.sunLight.position.copy(this.cameraTarget).add(new THREE.Vector3(500, 1000, 500));
+                    this.sunLight.target.updateMatrixWorld();
+                }
+            }
+
+            setupEventListeners() {
+                this.generateBtn.addEventListener('click', async () => {
+                    if (this.isBusy) return;
+                    this.isBusy = true;
+                    this.setButtonsDisabled(true);
+                    this.updateStatusText(true);
+                    
+                    await this.runPatternAnimation('clearing');
+                    await this.generateAndPrecomputePattern();
+                    this.frameCameraOnPattern();
+                    
+                    this.updateStatusText(false);
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+
+                    await this.runPatternAnimation('drawing');
+                    
+                    this.isBusy = false;
+                    this.setButtonsDisabled(false);
+                });
+
+                this.clearPatternsBtn.addEventListener('click', async () => {
+                    if (this.isBusy) return;
+                    this.isBusy = true;
+                    this.setButtonsDisabled(true);
+                    
+                    await this.runPatternAnimation('clearing');
+
+                    this.patterns = [];
+                    this.patternGrid = null;
+                    await this.runPatternAnimation('drawing'); 
+                    
+                    this.isBusy = false;
+                    this.setButtonsDisabled(false);
+                });
+
+                this.exportBtn.addEventListener('click', () => this.exportAsWallpaper());
+
+                this.renderer.domElement.addEventListener('wheel', (e) => { e.preventDefault(); });
+
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.frameCameraOnPattern();
+                });
+            }
+
+            growField() {
+                return new Promise(resolve => {
+                    const totalCrops = Math.floor(this.renderFieldSize * this.renderFieldSize * this.cropDensity / 100);
+                    // USER FEEDBACK: Made the base stalk geometry taller.
+                    const stalkGeometry = new THREE.CylinderGeometry(0.5, 1, 40, 4);
+                    // VISUAL FIX: Reverted to MeshLambertMaterial for detail.
+                    const stalkMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                    this.instancedMesh = new THREE.InstancedMesh(stalkGeometry, stalkMaterial, totalCrops);
+                    this.instancedMesh.castShadow = false;
+                    this.instancedMesh.receiveShadow = false;
+                    this.scene.add(this.instancedMesh);
+                    
+                    let i = 0;
+                    const dummy = new THREE.Object3D();
+                    const chunkSize = 50000;
+
+                    const growChunk = () => {
+                        const limit = Math.min(i + chunkSize, totalCrops);
+                        for (; i < limit; i++) {
+                            const x = (Math.random() - 0.5) * this.renderFieldSize;
+                            const z = (Math.random() - 0.5) * this.renderFieldSize;
+                            // USER FEEDBACK: Increased the random height variation for taller stalks.
+                            const height = 40 + Math.random() * 15;
+                            const scaleY = height / 40; // Match the new base geometry height
+                            this.cropStalksData.push({ x, y: height / 2, z, rotation: new THREE.Euler(0, Math.random() * Math.PI * 2, 0), scaleY, isFlattened: false });
+                            dummy.position.set(x, height / 2, z);
+                            dummy.rotation.copy(this.cropStalksData[i].rotation);
+                            dummy.scale.set(1, scaleY, 1);
+                            dummy.updateMatrix();
+                            this.instancedMesh.setMatrixAt(i, dummy.matrix);
+                            this.instancedMesh.setColorAt(i, this.standingColor);
+                        }
+                        
+                        this.instancedMesh.count = i;
+                        this.instancedMesh.instanceMatrix.needsUpdate = true;
+                        if (this.instancedMesh.instanceColor) this.instancedMesh.instanceColor.needsUpdate = true;
+
+                        if (i < totalCrops) {
+                            requestAnimationFrame(growChunk);
+                        } else {
+                            resolve();
+                        }
+                    };
+                    growChunk();
+                });
+            }
+            
+            async generateAndPrecomputePattern() {
+                this.patterns = [];
+                this.generateComplexPattern();
+                await this.precomputePatternInfluence();
+            }
+
+            generateComplexPattern() {
+                const centerX = 0, centerZ = 0;
+                // AESTHETIC FIX: Expanded array of clean, geometric pattern generators.
+                const generators = [
+                    () => this.createMandalaPattern(centerX, centerZ),
+                    () => this.createFlowerOfLifePattern(centerX, centerZ),
+                    () => this.createVesicaPiscisPattern(centerX, centerZ, 200),
+                    () => this.createComplexGeometricPattern(centerX, centerZ),
+                    () => this.createConcentricRingsPattern(centerX, centerZ),
+                    () => this.createGridPattern(centerX, centerZ),
+                    () => this.createSeedOfLifePattern(centerX, centerZ),
+                    () => this.createMetatronsCubePattern(centerX, centerZ),
+                    () => this.createSriYantraPattern(centerX, centerZ),
+                    () => this.createHexGridPattern(centerX, centerZ),
+                    () => this.createFractalStarPattern(centerX, centerZ),
+                    () => this.createLabyrinthPattern(centerX, centerZ),
+                    () => this.createSunWheelPattern(centerX, centerZ),
+                    () => this.createOverlappingRingsPattern(centerX, centerZ),
+                    () => this.createCelticKnotPattern(centerX, centerZ),
+                    () => this.createTorusKnotPattern(centerX, centerZ),
+                    () => this.createSpiralPattern(centerX, centerZ),
+                    () => this.createStarOfDavidPattern(centerX, centerZ)
+                ];
+                
+                const baseGenerator = generators[Math.floor(Math.random() * generators.length)];
+                baseGenerator();
+            }
+            
+            // NEW PATTERN
+            createConcentricRingsPattern(cx, cz) {
+                const numRings = 5 + Math.floor(Math.random() * 5);
+                const initialRadius = 150 + Math.random() * 100;
+                const spacing = 80 + Math.random() * 50;
+                const width = 30 + Math.random() * 20;
+                for (let i = 0; i < numRings; i++) {
+                    const radius = initialRadius + i * spacing;
+                    this.patterns.push({ type: 'circle', center: new THREE.Vector2(cx, cz), radius: radius, width: width });
+                }
+            }
+
+            // NEW PATTERN
+            createGridPattern(cx, cz) {
+                const gridSize = 7 + Math.floor(Math.random() * 6); // e.g., 7x7 grid
+                const spacing = 200 + Math.random() * 100;
+                const radius = 50 + Math.random() * 25;
+                const halfGrid = Math.floor(gridSize / 2);
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        const x = cx + (i - halfGrid) * spacing;
+                        const z = cz + (j - halfGrid) * spacing;
+                        this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(x, z), radius: radius, direction: 'clockwise' });
+                    }
+                }
+            }
+            
+            // NEW PATTERN
+            createSeedOfLifePattern(cx, cz) {
+                const baseRadius = 250 + Math.random() * 100;
+                this.patterns.push({ type: 'circle', center: new THREE.Vector2(cx, cz), radius: baseRadius, width: 30 });
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const x = cx + Math.cos(angle) * baseRadius;
+                    const z = cz + Math.sin(angle) * baseRadius;
+                    this.patterns.push({ type: 'circle', center: new THREE.Vector2(x, z), radius: baseRadius, width: 30 });
+                }
+            }
+            
+            // NEW PATTERN
+            createMetatronsCubePattern(cx, cz) {
+                const baseRadius = 300 + Math.random() * 150;
+                const centerCircle = { type: 'filledCircle', center: new THREE.Vector2(cx, cz), radius: baseRadius / 2, direction: 'clockwise' };
+                this.patterns.push(centerCircle);
+                const points = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const x = cx + Math.cos(angle) * baseRadius;
+                    const z = cz + Math.sin(angle) * baseRadius;
+                    points.push(new THREE.Vector2(x, z));
+                    this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(x, z), radius: baseRadius / 2, direction: 'clockwise' });
+                }
+                for (let i = 0; i < 6; i++) {
+                    for (let j = i + 1; j < 6; j++) {
+                        this.patterns.push({ type: 'line', start: points[i], end: points[j], width: 30 });
+                    }
+                }
+            }
+
+            // NEW PATTERN
+            createSriYantraPattern(cx, cz) {
+                const R = 600 + Math.random() * 200;
+                const points = [];
+                for (let i = 0; i < 3; i++) {
+                    points.push(new THREE.Vector2(cx + R * Math.cos(Math.PI / 2 + i * 2 * Math.PI / 3), cz + R * Math.sin(Math.PI / 2 + i * 2 * Math.PI / 3)));
+                }
+                for (let i = 0; i < 3; i++) {
+                    points.push(new THREE.Vector2(cx + R * Math.cos(3 * Math.PI / 2 + i * 2 * Math.PI / 3), cz + R * Math.sin(3 * Math.PI / 2 + i * 2 * Math.PI / 3)));
+                }
+                this.patterns.push({ type: 'line', start: points[0], end: points[1], width: 20 });
+                this.patterns.push({ type: 'line', start: points[1], end: points[2], width: 20 });
+                this.patterns.push({ type: 'line', start: points[2], end: points[0], width: 20 });
+                this.patterns.push({ type: 'line', start: points[3], end: points[4], width: 20 });
+                this.patterns.push({ type: 'line', start: points[4], end: points[5], width: 20 });
+                this.patterns.push({ type: 'line', start: points[5], end: points[3], width: 20 });
+                this.patterns.push({ type: 'circle', center: new THREE.Vector2(cx, cz), radius: R * 1.1, width: 20 });
+                this.patterns.push({ type: 'circle', center: new THREE.Vector2(cx, cz), radius: R * 1.2, width: 20 });
+            }
+
+            // NEW PATTERN
+            createHexGridPattern(cx, cz) {
+                const size = 150 + Math.random() * 50;
+                const hexWidth = Math.sqrt(3) * size;
+                const hexHeight = 2 * size;
+                const numX = 5 + Math.floor(Math.random() * 4);
+                const numY = 5 + Math.floor(Math.random() * 4);
+                for (let q = -numX; q <= numX; q++) {
+                    for (let r = -numY; r <= numY; r++) {
+                        const x = cx + hexWidth * (q + r / 2);
+                        const z = cz + hexHeight * 3 / 4 * r;
+                        if (Math.sqrt(x * x + z * z) < 1200) {
+                            this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(x, z), radius: size / 2, direction: 'clockwise' });
+                        }
+                    }
+                }
+            }
+
+            // NEW PATTERN
+            createFractalStarPattern(cx, cz) {
+                const drawStar = (center, radius, depth) => {
+                    if (depth <= 0) return;
+                    const points = [];
+                    for (let i = 0; i < 5; i++) {
+                        const angle = i * 2 * Math.PI / 5 - Math.PI / 2;
+                        points.push(new THREE.Vector2(center.x + Math.cos(angle) * radius, center.y + Math.sin(angle) * radius));
+                    }
+                    for (let i = 0; i < 5; i++) {
+                        this.patterns.push({ type: 'line', start: points[i], end: points[(i + 2) % 5], width: 15 * depth });
+                    }
+                    for (let i = 0; i < 5; i++) {
+                        drawStar(points[i], radius / 2.5, depth - 1);
+                    }
+                };
+                drawStar(new THREE.Vector2(cx, cz), 800, 3);
+            }
+
+            // NEW PATTERN
+            createLabyrinthPattern(cx, cz) {
+                const size = 1000;
+                const spacing = 100;
+                const width = 30;
+                for (let i = 0; i < 5; i++) {
+                    const s = size - i * spacing * 2;
+                    this.patterns.push({ type: 'line', start: new THREE.Vector2(cx - s, cz - s), end: new THREE.Vector2(cx + s, cz - s), width: width });
+                    this.patterns.push({ type: 'line', start: new THREE.Vector2(cx + s, cz - s), end: new THREE.Vector2(cx + s, cz + s), width: width });
+                    this.patterns.push({ type: 'line', start: new THREE.Vector2(cx + s, cz + s), end: new THREE.Vector2(cx - s, cz + s), width: width });
+                    if (i < 4) {
+                       this.patterns.push({ type: 'line', start: new THREE.Vector2(cx - s, cz + s), end: new THREE.Vector2(cx - s, cz - s + spacing), width: width });
+                    }
+                }
+            }
+
+            // NEW PATTERN
+            createSunWheelPattern(cx, cz) {
+                const centerRadius = 200 + Math.random() * 100;
+                const outerRadius = 800 + Math.random() * 200;
+                const numSpokes = 8 + Math.floor(Math.random() * 9);
+                const width = 40;
+                this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(cx, cz), radius: centerRadius, direction: 'clockwise' });
+                this.patterns.push({ type: 'circle', center: new THREE.Vector2(cx, cz), radius: outerRadius, width: width });
+                for (let i = 0; i < numSpokes; i++) {
+                    const angle = (i / numSpokes) * Math.PI * 2;
+                    const start = new THREE.Vector2(cx + Math.cos(angle) * centerRadius, cz + Math.sin(angle) * centerRadius);
+                    const end = new THREE.Vector2(cx + Math.cos(angle) * outerRadius, cz + Math.sin(angle) * outerRadius);
+                    this.patterns.push({ type: 'line', start: start, end: end, width: width });
+                }
+            }
+            
+            // NEW PATTERN
+            createOverlappingRingsPattern(cx, cz) {
+                const numRings = 6 + Math.floor(Math.random() * 5);
+                const orbitRadius = 400 + Math.random() * 200;
+                const ringRadius = 300 + Math.random() * 100;
+                const width = 30;
+                for (let i = 0; i < numRings; i++) {
+                    const angle = (i / numRings) * Math.PI * 2;
+                    const x = cx + Math.cos(angle) * orbitRadius;
+                    const z = cz + Math.sin(angle) * orbitRadius;
+                    this.patterns.push({ type: 'circle', center: new THREE.Vector2(x, z), radius: ringRadius, width: width });
+                }
+            }
+
+            // NEW PATTERN
+            createCelticKnotPattern(cx, cz) {
+                const R = 500;
+                const width = 40;
+                const points = [];
+                for (let i = 0; i < 4; i++) {
+                    const angle = i * Math.PI / 2;
+                    points.push(new THREE.Vector2(cx + R * Math.cos(angle), cz + R * Math.sin(angle)));
+                }
+                for (let i = 0; i < 4; i++) {
+                    const p1 = points[i];
+                    const p2 = points[(i + 1) % 4];
+                    const mid = new THREE.Vector2((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const c1 = new THREE.Vector2(mid.x - R/2 * Math.cos(angle + Math.PI/2), mid.y - R/2 * Math.sin(angle + Math.PI/2));
+                    const c2 = new THREE.Vector2(mid.x + R/2 * Math.cos(angle + Math.PI/2), mid.y + R/2 * Math.sin(angle + Math.PI/2));
+                    this.patterns.push({ type: 'circle', center: c1, radius: R/2, width: width });
+                    this.patterns.push({ type: 'circle', center: c2, radius: R/2, width: width });
+                }
+            }
+            
+            // NEW PATTERN
+            createTorusKnotPattern(cx, cz) {
+                const p = 2;
+                const q = 3;
+                const radius = 500;
+                const tubeRadius = 150;
+                const segments = 128;
+                let lastPoint = null;
+                for (let i = 0; i <= segments; i++) {
+                    const t = i / segments * Math.PI * 2;
+                    const r = Math.cos(q * t) + 2;
+                    const x = cx + radius * r * Math.cos(p * t);
+                    const z = cz + radius * r * Math.sin(p * t);
+                    const currentPoint = new THREE.Vector2(x, z);
+                    if (lastPoint) {
+                        this.patterns.push({ type: 'line', start: lastPoint, end: currentPoint, width: tubeRadius });
+                    }
+                    lastPoint = currentPoint;
+                }
+            }
+            
+            // NEW PATTERN
+            createSpiralPattern(cx, cz) {
+                const numArms = 3 + Math.floor(Math.random() * 4);
+                const armLength = 1200;
+                const width = 50;
+                for (let i = 0; i < numArms; i++) {
+                    const angleOffset = (i / numArms) * Math.PI * 2;
+                    let lastPoint = new THREE.Vector2(cx, cz);
+                    for (let r = 10; r < armLength; r += 10) {
+                        const angle = 0.1 * r + angleOffset;
+                        const x = cx + r * Math.cos(angle);
+                        const z = cz + r * Math.sin(angle);
+                        const currentPoint = new THREE.Vector2(x, z);
+                        this.patterns.push({ type: 'line', start: lastPoint, end: currentPoint, width: width });
+                        lastPoint = currentPoint;
+                    }
+                }
+            }
+
+            // NEW PATTERN
+            createStarOfDavidPattern(cx, cz) {
+                const R = 600;
+                const width = 30;
+                const points1 = [];
+                const points2 = [];
+                for (let i = 0; i < 3; i++) {
+                    points1.push(new THREE.Vector2(cx + R * Math.cos(Math.PI / 2 + i * 2 * Math.PI / 3), cz + R * Math.sin(Math.PI / 2 + i * 2 * Math.PI / 3)));
+                    points2.push(new THREE.Vector2(cx + R * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / 3), cz + R * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / 3)));
+                }
+                for (let i = 0; i < 3; i++) {
+                    this.patterns.push({ type: 'line', start: points1[i], end: points1[(i + 1) % 3], width: width });
+                    this.patterns.push({ type: 'line', start: points2[i], end: points2[(i + 1) % 3], width: width });
+                }
+            }
+
+            createMandalaPattern(cx, cz, offset = 0) {
+                const baseRadius = 180 + Math.random() * 100;
+                const numPetalSets = 2 + Math.floor(Math.random() * 3);
+                for (let j = 0; j < numPetalSets; j++) {
+                    const currentBaseRadius = (baseRadius * (0.5 + j * 0.4)) + offset;
+                    const numPetals = 8 + Math.floor(Math.random() * 5) * 2;
+                    const petalRadius = currentBaseRadius * (0.35 + Math.random() * 0.15);
+                    const petalOffset = currentBaseRadius * (0.9 + Math.random() * 0.1);
+                    for (let i = 0; i < numPetals; i++) {
+                        const angle = (i / numPetals) * Math.PI * 2;
+                        const x = cx + Math.cos(angle) * petalOffset;
+                        const z = cz + Math.sin(angle) * petalOffset;
+                        this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(x, z), radius: petalRadius, direction: Math.random() > 0.5 ? 'clockwise' : 'counterclockwise' });
+                    }
+                }
+            }
+
+            createFlowerOfLifePattern(cx, cz, offset = 0) {
+                const baseRadius = 100 + Math.random() * 40;
+                const numLayers = 3 + Math.floor(Math.random() * 2);
+                this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(cx, cz), radius: baseRadius + offset, direction: 'clockwise' });
+                for (let layer = 1; layer <= numLayers; layer++) {
+                    const numCirclesInLayer = 6 * layer;
+                    const layerRadius = (baseRadius * layer) + offset;
+                    for (let i = 0; i < numCirclesInLayer; i++) {
+                        const angle = (i / numCirclesInLayer) * Math.PI * 2;
+                        const x = cx + Math.cos(angle) * layerRadius;
+                        const z = cz + Math.sin(angle) * layerRadius;
+                        this.patterns.push({ type: 'circle', center: new THREE.Vector2(x, z), radius: baseRadius, width: 25 + Math.random() * 10, direction: Math.random() > 0.5 ? 'clockwise' : 'counterclockwise' });
+                    }
+                }
+            }
+
+            createVesicaPiscisPattern(cx, cz, offset = 0) {
+                const baseRadius = 250 + Math.random() * 100;
+                const numIntersections = 3 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < numIntersections; i++) {
+                    const angle = (i / numIntersections) * Math.PI * 2;
+                    const x = cx + Math.cos(angle) * (baseRadius / 2 + offset);
+                    const z = cz + Math.sin(angle) * (baseRadius / 2 + offset);
+                    this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(x, z), radius: baseRadius, direction: Math.random() > 0.5 ? 'clockwise' : 'counterclockwise' });
+                }
+            }
+
+            createComplexGeometricPattern(cx, cz, offset = 0) {
+                const outerRadius = 500 + Math.random() * 200 + offset;
+                const numSides = [5, 6, 8, 10][Math.floor(Math.random() * 4)];
+                for (let i = 0; i < numSides; i++) {
+                    const angle1 = (i / numSides) * Math.PI * 2;
+                    const angle2 = ((i + 1) / numSides) * Math.PI * 2;
+                    this.patterns.push({ type: 'line', start: new THREE.Vector2(cx + Math.cos(angle1) * outerRadius, cz + Math.sin(angle1) * outerRadius), end: new THREE.Vector2(cx + Math.cos(angle2) * outerRadius, cz + Math.sin(angle2) * outerRadius), width: 25 + Math.random() * 15 });
+                }
+                const innerRadius = outerRadius * (0.4 + Math.random() * 0.2);
+                for (let i = 0; i < numSides; i++) {
+                    const angle = (i / numSides) * Math.PI * 2;
+                    this.patterns.push({ type: 'filledCircle', center: new THREE.Vector2(cx + Math.cos(angle) * innerRadius, cz + Math.sin(angle) * innerRadius), radius: 50 + Math.random() * 25, direction: 'clockwise' });
+                }
+            }
+
+            precomputePatternInfluence() {
+                return new Promise(resolve => {
+                    this.patternGrid = [];
+                    const halfRenderField = this.renderFieldSize / 2;
+                    const cellSize = this.renderFieldSize / this.gridResolution;
+                    
+                    let y = 0;
+                    const rowsPerChunk = 5;
+
+                    const computeChunk = () => {
+                        const chunkLimit = Math.min(y + rowsPerChunk, this.gridResolution);
+                        for (; y < chunkLimit; y++) {
+                            const row = [];
+                            for (let x = 0; x < this.gridResolution; x++) {
+                                const gridPos = new THREE.Vector2(
+                                    x * cellSize - halfRenderField + cellSize / 2,
+                                    y * cellSize - halfRenderField + cellSize / 2
+                                );
+                                
+                                let finalInfluence = null;
+
+                                for (let i = this.patterns.length - 1; i >= 0; i--) {
+                                    const pattern = this.patterns[i];
+                                    let intensity = 0;
+
+                                    if (pattern.type === 'circle') {
+                                        const dist = gridPos.distanceTo(pattern.center);
+                                        const closeness = Math.abs(dist - pattern.radius);
+                                        if (closeness <= pattern.width / 2) {
+                                            intensity = 1 - (closeness / (pattern.width / 2));
+                                        }
+                                    } else if (pattern.type === 'filledCircle') {
+                                        const dist = gridPos.distanceTo(pattern.center);
+                                        if (dist <= pattern.radius) {
+                                            // AESTHETIC FIX: Set uniform intensity for a flat look, removing the dark center.
+                                            intensity = 1.0;
+                                        }
+                                    } else if (pattern.type === 'line') {
+                                        const dist = this.distanceToLineSegment(gridPos, pattern.start, pattern.end);
+                                        if (dist <= pattern.width / 2) {
+                                            intensity = 1 - (dist / (pattern.width / 2));
+                                        }
+                                    }
+
+                                    if (intensity > 0.1) {
+                                        let swirlAngle;
+                                        if (pattern.type === 'circle' || pattern.type === 'filledCircle') {
+                                            const dir = new THREE.Vector2(gridPos.x - pattern.center.x, gridPos.y - pattern.center.y);
+                                            swirlAngle = dir.angle() + (pattern.direction === 'clockwise' ? -Math.PI / 2 : Math.PI / 2);
+                                        } else { // line
+                                            const dir = new THREE.Vector2(pattern.end.x - pattern.start.x, pattern.end.y - pattern.start.y);
+                                            swirlAngle = dir.angle();
+                                        }
+                                        finalInfluence = { intensity: intensity, angle: swirlAngle };
+                                        break; 
+                                    }
+                                }
+                                row.push(finalInfluence);
+                            }
+                            this.patternGrid.push(row);
+                        }
+
+                        if (y < this.gridResolution) {
+                            requestAnimationFrame(computeChunk);
+                        } else {
+                            resolve();
+                        }
+                    };
+                    computeChunk();
+                });
+            }
+
+            calculatePatternBounds() {
+                if (this.patterns.length === 0) {
+                    return null;
+                }
+                const bounds = new THREE.Box2();
+                this.patterns.forEach(p => {
+                    if (p.type === 'circle' || p.type === 'filledCircle') {
+                        const radius = p.radius + (p.width ? p.width / 2 : 0);
+                        bounds.expandByPoint(new THREE.Vector2(p.center.x - radius, p.center.y - radius));
+                        bounds.expandByPoint(new THREE.Vector2(p.center.x + radius, p.center.y + radius));
+                    } else if (p.type === 'line') {
+                        const halfWidth = p.width / 2;
+                        bounds.expandByPoint(new THREE.Vector2(p.start.x - halfWidth, p.start.y - halfWidth));
+                        bounds.expandByPoint(new THREE.Vector2(p.start.x + halfWidth, p.start.y + halfWidth));
+                        bounds.expandByPoint(new THREE.Vector2(p.end.x - halfWidth, p.end.y - halfWidth));
+                        bounds.expandByPoint(new THREE.Vector2(p.end.x + halfWidth, p.end.y + halfWidth));
+                    }
+                });
+                return bounds;
+            }
+
+            frameCameraOnPattern() {
+                const bounds = this.calculatePatternBounds();
+                if (!bounds || bounds.isEmpty()) {
+                    // Default view if no pattern
+                    this.cameraTarget.set(0, 0, 0);
+                    this.cameraHeight = 3000;
+                    this.updateCameraPosition();
+                    return;
+                }
+
+                const center = new THREE.Vector2();
+                bounds.getCenter(center);
+                this.cameraTarget.set(center.x, 0, center.y);
+
+                const size = new THREE.Vector2();
+                bounds.getSize(size);
+                const maxSize = Math.max(size.x, size.y);
+                
+                const fovRad = THREE.MathUtils.degToRad(this.camera.fov);
+                const aspect = this.camera.aspect;
+
+                const heightToFit = maxSize / 2 / Math.tan(fovRad / 2);
+                const widthToFit = (maxSize / aspect) / 2 / Math.tan(fovRad / 2);
+
+                this.cameraHeight = Math.max(heightToFit, widthToFit) * 1.2; // 20% padding
+
+                this.updateCameraPosition();
+            }
+
+            runPatternAnimation(mode) {
+                 return new Promise(resolve => {
+                    this.patternAnimation.mode = mode;
+                    this.patternAnimation.startTime = Date.now();
+                    this.patternAnimation.progress = 0;
+                    this.patternAnimation.active = true;
+                    this.patternAnimation.finishing = false;
+                    this.animationCompletionCallback = resolve;
+                });
+            }
+            
+            distanceToLineSegment(p, v, w) {
+                const l2 = v.distanceToSquared(w);
+                if (l2 === 0) return p.distanceTo(v);
+                let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+                t = Math.max(0, Math.min(1, t));
+                return p.distanceTo(new THREE.Vector2(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));
+            }
+
+            resetStalk(index) {
+                const stalk = this.cropStalksData[index];
+                stalk.isFlattened = false;
+                const dummy = new THREE.Object3D();
+                dummy.position.set(stalk.x, stalk.y, stalk.z);
+                dummy.rotation.copy(stalk.rotation);
+                dummy.scale.set(1, stalk.scaleY, 1);
+                dummy.updateMatrix();
+                this.instancedMesh.setMatrixAt(index, dummy.matrix);
+                this.instancedMesh.setColorAt(index, this.standingColor);
+            }
+
+            flattenStalk(index, animationProgress) {
+                const stalk = this.cropStalksData[index];
+                const effectiveProgress = this.patternAnimation.mode === 'drawing' ? animationProgress : 1 - animationProgress;
+
+                const halfRenderField = this.renderFieldSize / 2;
+                if (!this.patternGrid) {
+                    this.resetStalk(index);
+                    return;
+                }
+
+                const gridX = Math.floor((stalk.x + halfRenderField) / this.renderFieldSize * this.gridResolution);
+                const gridY = Math.floor((stalk.z + halfRenderField) / this.renderFieldSize * this.gridResolution);
+
+                if (gridX < 0 || gridX >= this.gridResolution || gridY < 0 || gridY >= this.gridResolution) {
+                     this.resetStalk(index);
+                     return;
+                }
+                
+                const influence = this.patternGrid[gridY] ? this.patternGrid[gridY][gridX] : null;
+
+                const dummy = new THREE.Object3D();
+                dummy.position.set(stalk.x, stalk.y, stalk.z);
+                dummy.rotation.copy(stalk.rotation);
+                dummy.scale.set(1, stalk.scaleY, 1);
+
+                if (influence) {
+                    const maxTilt = Math.PI / 2 * 0.98; 
+                    const tilt = influence.intensity * maxTilt * effectiveProgress;
+                    
+                    stalk.isFlattened = tilt > 0.01;
+
+                    dummy.rotation.set(Math.cos(influence.angle) * tilt, stalk.rotation.y, Math.sin(influence.angle) * tilt);
+                    // USER FEEDBACK: Adjusted the "push down" effect to be proportional to the taller stalks.
+                    dummy.position.y = Math.max(0.5, stalk.y - (influence.intensity * stalk.scaleY * 35 * effectiveProgress));
+                    
+                    this.instancedMesh.setColorAt(index, stalk.isFlattened ? this.flattenedColor : this.standingColor);
+
+                } else {
+                    stalk.isFlattened = false; 
+                    this.instancedMesh.setColorAt(index, this.standingColor);
+                }
+                
+                dummy.updateMatrix();
+                this.instancedMesh.setMatrixAt(index, dummy.matrix);
+            }
+
+            async exportAsWallpaper() {
+                if (this.isBusy) return;
+                this.isBusy = true;
+                this.setButtonsDisabled(true);
+                this.statusText.textContent = 'Exporting 4K Wallpaper...';
+                this.updateStatusText(true, true);
+
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                try {
+                    const exportWidth = 3840;
+                    const exportHeight = 2160;
+                    const exportAspect = exportWidth / exportHeight;
+                    const fovRad = THREE.MathUtils.degToRad(this.camera.fov);
+                    
+                    const bounds = this.calculatePatternBounds();
+                    if (!bounds || bounds.isEmpty()) return;
+
+                    const center = new THREE.Vector2();
+                    bounds.getCenter(center);
+                    const size = new THREE.Vector2();
+                    bounds.getSize(size);
+                    const maxSize = Math.max(size.x, size.y);
+
+                    const renderTarget = new THREE.WebGLRenderTarget(exportWidth, exportHeight);
+                    const exportCamera = this.camera.clone();
+                    
+                    const heightToFit = maxSize / 2 / Math.tan(fovRad / 2);
+                    const widthToFit = (maxSize / exportAspect) / 2 / Math.tan(fovRad / 2);
+                    const requiredCameraHeight = Math.max(heightToFit, widthToFit) * 1.1;
+
+                    exportCamera.aspect = exportAspect;
+                    exportCamera.position.set(center.x, requiredCameraHeight, center.y); 
+                    exportCamera.lookAt(center.x, 0, center.y);
+                    exportCamera.updateProjectionMatrix();
+
+                    this.renderer.setRenderTarget(renderTarget);
+                    this.renderer.render(this.scene, exportCamera);
+                    this.renderer.setRenderTarget(null);
+
+                    const pixelBuffer = new Uint8Array(exportWidth * exportHeight * 4);
+                    this.renderer.readRenderTargetPixels(renderTarget, 0, 0, exportWidth, exportHeight, pixelBuffer);
+                    
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = exportWidth;
+                    tempCanvas.height = exportHeight;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    const imageData = new ImageData(new Uint8ClampedArray(pixelBuffer.buffer), exportWidth, exportHeight);
+                    tempCtx.putImageData(imageData, 0, 0);
+
+                    tempCanvas.toBlob((blob) => {
+                        const link = document.createElement('a');
+                        link.download = `crop-circle-4k-${Date.now()}.png`;
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                    }, 'image/png');
+
+                    renderTarget.dispose();
+
+                } finally {
+                    this.updateStatusText(false);
+                    this.statusText.textContent = 'Contacting Aliens';
+                    this.isBusy = false;
+                    this.setButtonsDisabled(false);
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                if (!this.instancedMesh) {
+                    this.renderer.render(this.scene, this.camera);
+                    return;
+                }
+                const time = Date.now();
+                let needsMatrixUpdate = false;
+                let needsColorUpdate = false;
+
+                if (this.patternAnimation.active) {
+                    needsMatrixUpdate = true;
+                    needsColorUpdate = true;
+                    let progress;
+                    if (this.patternAnimation.finishing) {
+                        progress = 1.0;
+                    } else {
+                        const elapsedTime = time - this.patternAnimation.startTime;
+                        progress = Math.min(elapsedTime / this.patternAnimation.duration, 1);
+                    }
+                    const jobEnd = Math.min(this.updateJob.stalkIndex + this.updateJob.batchSize, this.cropStalksData.length);
+                    for (let i = this.updateJob.stalkIndex; i < jobEnd; i++) {
+                       this.flattenStalk(i, progress);
+                    }
+                    
+                    this.updateJob.stalkIndex = jobEnd;
+                    if (this.updateJob.stalkIndex >= this.cropStalksData.length) {
+                        this.updateJob.stalkIndex = 0;
+                        if (this.patternAnimation.finishing) {
+                            this.patternAnimation.active = false;
+                            this.patternAnimation.finishing = false;
+                            if (this.animationCompletionCallback) {
+                                this.animationCompletionCallback();
+                                this.animationCompletionCallback = null;
+                            }
+                        } else if (progress >= 1) {
+                            this.patternAnimation.finishing = true;
+                        }
+                    }
+                }
+                
+                if (needsMatrixUpdate) {
+                    this.instancedMesh.instanceMatrix.needsUpdate = true;
+                }
+                if (needsColorUpdate) {
+                    if (this.instancedMesh.instanceColor) this.instancedMesh.instanceColor.needsUpdate = true;
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        window.addEventListener('load', () => {
+            new RealisticCropCircleSimulator();
+        });
+    </script>
+</body>
+</html>
